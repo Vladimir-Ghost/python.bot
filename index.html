@@ -61,6 +61,28 @@
         button:hover {
             opacity: 0.8;
         }
+
+        #form {
+            display: none;
+            width: 100%;
+            padding: 20px;
+            text-align: center;
+        }
+
+        input {
+            display: block;
+            width: 400px;
+            margin: 20px auto;
+            padding: 15px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        #error {
+            color: red;
+            margin: 10px 0;
+        }
     </style>
 </head>
 <body>
@@ -74,36 +96,42 @@
         <input type="text" placeholder="Имя" id="user_name">
         <input type="text" placeholder="Email" id="user_email">
         <input type="text" placeholder="Телефон" id="user_phone">
-        <button id="order">Оформить</button>
+        <div id="error"></div>
+        <button type="button" id="order">Оформить</button>
     </form>
     <script src="https://telegram.org/js/telegram-web-app.js?57"></script>
     <script>
         let tg = window.Telegram.WebApp;
-        ley buy = document.getElementById("buy");
-        let but = document.getElementById("order")
+        let buy = document.getElementById("buy");
+        let order = document.getElementById("order");
         tg.expand();
 
         buy.addEventListener("click", () => {
             document.getElementById("main").style.display = "none";
             document.getElementById("form").style.display = "block";
-            document.getElementById("user_name").value = tg.initDataUnsafe.user.first_name + " " + tg.initDataUnsafe.user.last_name
-            });
+            if (tg.initDataUnsafe?.user) {
+                document.getElementById("user_name").value =
+                    (tg.initDataUnsafe.user.first_name || '') +
+                    (tg.initDataUnsafe.user.last_name ? ' ' + tg.initDataUnsafe.user.last_name : '');
+            }
+        });
 
         order.addEventListener("click", () => {
             document.getElementById("error").innerText = '';
             let name = document.getElementById("user_name").value;
             let email = document.getElementById("user_email").value;
             let phone = document.getElementById("user_phone").value;
-            if(name.lenght < 5) {
-                document.getElementById("error").innerText = "Ошибка в имени.";
+
+            if(name.length < 2) {
+                document.getElementById("error").innerText = "Имя слишком короткое.";
                 return;
             }
-            if(email.lenght < 5) {
-                document.getElementById("error").innerText = "Ошибка в email.";
+            if(email.length < 5 || !email.includes('@')) {
+                document.getElementById("error").innerText = "Некорректный email.";
                 return;
             }
-             if(phone.lenght < 5) {
-                document.getElementById("error").innerText = "Ошибка в номере телефона.";
+            if(phone.length < 5) {
+                document.getElementById("error").innerText = "Некорректный номер телефона.";
                 return;
             }
 
@@ -111,13 +139,10 @@
                 name: name,
                 email: email,
                 phone: phone
-                }
+            };
             tg.sendData(JSON.stringify(data));
-
             tg.close();
         });
-
-
     </script>
 </body>
 </html>
